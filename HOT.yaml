@@ -11,7 +11,7 @@ parameters:
     type: string
     label: Key Pair Name
     description: Name of keypair to assign to servers (must to be created before)
-    default: keyssh
+    immutable: true
   image:
     type: string
     label: Image name
