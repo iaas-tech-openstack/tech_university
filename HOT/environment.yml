@@ -1,0 +1,10 @@
+parameter_defaults:
+  key_name: keystack
+  image: cirros
+  flavor: m1.tiny
+  public_net: public
+  private_net_name: privnet
+  private_net_cidr: 10.20.0.0/24
+  private_net_gateway: 10.20.0.1
+  private_net_pool_start: 10.20.0.2
+  private_net_pool_end: 10.20.0.254
