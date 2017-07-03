@@ -5,35 +5,54 @@ description: >
   network, and for deploying two servers into the new network. The template also
   assigns floating IP addresses to each server so they are routable from the
   public network.
+  
 parameters:
   key_name:
     type: string
-    description: Name of keypair to assign to servers
+    label: Key Pair Name
+    description: Name of keypair to assign to servers (must to be created before)
+    immutable: true
   image:
     type: string
+    label: Image name
     description: Name of image to use for servers
+    default: cirros
   flavor:
     type: string
+    label: Flavor Name
     description: Flavor to use for servers
+    default: m1.tiny
   public_net:
     type: string
+    label: External public network name
     description: >
       ID or name of public network for which floating IP addresses will be allocated
+    default: public
   private_net_name:
     type: string
+    label: Internal tenant network name
     description: Name of private network to be created
+    default: internal
   private_net_cidr:
     type: string
+    label: Private network address (CIDR notation)
     description: Private network address (CIDR notation)
+    default: 192.168.1.0/24
   private_net_gateway:
     type: string
+    label: Private gateway address
     description: Private network gateway address
+    default: 192.168.1.1
   private_net_pool_start:
     type: string
+    label: First private newtwork IP address pool
     description: Start of private network IP address allocation pool
+    default: 192.168.1.2
   private_net_pool_end:
     type: string
+    label: Last private newtwork IP address pool
     description: End of private network IP address allocation pool
+    default: 192.168.1.100
 
 resources:
   private_net:
@@ -63,13 +82,19 @@ resources:
       router_id: { get_resource: router }
       subnet_id: { get_resource: private_subnet }
 
+  keypair:
+    type: OS::Nova::KeyPair
+    properties:
+      name: { get_param: key_name }
+      save_private_key: true
+
   server1:
     type: OS::Nova::Server
     properties:
       name: Server1
       image: { get_param: image }
       flavor: { get_param: flavor }
-      key_name: { get_param: key_name }
+      key_name: { get_resource: keypair }
       networks:
         - port: { get_resource: server1_port }
 
@@ -92,7 +117,7 @@ resources:
       name: Server2
       image: { get_param: image }
       flavor: { get_param: flavor }
-      key_name: { get_param: key_name }
+      key_name: { get_resource: keypair }
       networks:
         - port: { get_resource: server2_port }
 
@@ -110,6 +135,12 @@ resources:
       port_id: { get_resource: server2_port }
 
 outputs:
+  public_key:
+    description: The public key of the keypair.
+    value: { get_attr: [keypair, public_key] }
+  private_key:
+    description: The private key of the keypair.
+    value: { get_attr: [keypair, private_key] }
   server1_private_ip:
     description: IP address of server1 in private network
     value: { get_attr: [ server1, first_address ] }
@@ -122,4 +153,3 @@ outputs:
   server2_public_ip:
     description: Floating IP address of server2 in public network
     value: { get_attr: [ server2_floating_ip, floating_ip_address ] }
-	
